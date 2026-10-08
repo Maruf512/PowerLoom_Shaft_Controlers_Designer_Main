@@ -7,7 +7,7 @@ import useFetchState from "@/hooks/useFetchState";
 import useFilter from "@/hooks/useFilter";
 import apiClient from "@/lib/apiClient";
 import { DesignDataRecievedType, DesignDataType } from "@/types/data";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const Page = () => {
   const { search, setSearch } = useFilter();
@@ -36,12 +36,24 @@ const Page = () => {
         }));
 
         setData(mutatedData);
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     fetchDesigns();
-  }, [search, reload, setData]);
+  }, [reload, setData]);
+
+  // Client-side filtering — no refetch on keystrokes. Matches name,
+  // machine type, date and id.
+  const filteredData = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return data || [];
+    return (data || []).filter((d) =>
+      [d.name, d.machine_type, d.date, String(d.id)]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q))
+    );
+  }, [data, search]);
 
   return (
     <div className="space-y-6">
@@ -57,12 +69,22 @@ const Page = () => {
           // display={display}
         />
       </div>
+      {search.trim() && !loading ? (
+        <p className="text-xs text-muted px-1">
+          Showing {filteredData.length} of {(data || []).length} designs
+        </p>
+      ) : null}
       <div>
         <DataTable
-          data={data || []}
+          data={filteredData}
           columns={designColumn}
           setReload={setReload}
           loading={loading}
+          emptyMessage={
+            search.trim()
+              ? `No designs match "${search.trim()}"`
+              : "No Data Found"
+          }
         />
       </div>
     </div>

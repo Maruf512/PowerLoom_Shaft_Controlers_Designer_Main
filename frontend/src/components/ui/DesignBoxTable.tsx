@@ -134,22 +134,21 @@ const DesignBoxTable = ({
   setDesignDataError: React.Dispatch<React.SetStateAction<DesignErrorType>>;
   designDataError: DesignErrorType;
 }) => {
+  // Resize the grid rows to match Total Color Palettes WITHOUT wiping
+  // existing rows: growing appends fresh rows, shrinking keeps the first N.
+  // Previously the whole array was rebuilt from scratch on every change,
+  // resetting all checkbox selections and NOCV inputs.
   useEffect(() => {
-    const totalColorPalettes = designerData.total_color_palettes || 0;
-
-    if (designerData.design_grids.length !== totalColorPalettes) {
-      setDesignerData((prev) => ({
-        ...prev,
-        design_grids: new Array(totalColorPalettes)
-          .fill(null)
-          .map(() => ({ color_box: null, total_pics: null })),
-      }));
-    }
-  }, [
-    designerData.total_color_palettes,
-    designerData.design_grids.length,
-    setDesignerData,
-  ]);
+    const total = Math.max(0, designerData.total_color_palettes || 0);
+    setDesignerData((prev) => {
+      if (prev.design_grids.length === total) return prev;
+      const kept = prev.design_grids.slice(0, total);
+      while (kept.length < total) {
+        kept.push({ color_box: null, total_pics: null });
+      }
+      return { ...prev, design_grids: kept };
+    });
+  }, [designerData.total_color_palettes, setDesignerData]);
 
   const deisignGridRow = useMemo(() => {
     return new Array(4).fill(null).map((_, i) => `Box ${i + 1}`);
