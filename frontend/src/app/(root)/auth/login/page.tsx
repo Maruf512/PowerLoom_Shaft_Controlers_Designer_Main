@@ -7,6 +7,19 @@ import { AuthFieldsNameType, AuthUserResponseType } from "@/types/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+const LOGIN_FIELDS = [
+  {
+    fieldName: "email",
+    fieldType: "email",
+    placeholder: "Enter your email",
+  },
+  {
+    fieldName: "password",
+    fieldType: "password",
+    placeholder: "Enter your password",
+  },
+] as const;
+
 const Page = () => {
   const { error, loading, setLoading, setError } =
     useFetchState<AuthUserResponseType>();
@@ -39,21 +52,12 @@ const Page = () => {
 
   return (
     <>
-      <p className="absolute top-2 left-2">{error && JSON.stringify(error)}</p>
+      {error ? (
+        <p className="absolute top-2 left-2">{JSON.stringify(error)}</p>
+      ) : null}
       <div className="h-screen flex items-center justify-center">
         <AuthForm
-          fields={[
-            {
-              fieldName: "email",
-              fieldType: "email",
-              placeholder: "Enter your email",
-            },
-            {
-              fieldName: "password",
-              fieldType: "password",
-              placeholder: "Enter your password",
-            },
-          ]}
+          fields={[...LOGIN_FIELDS]}
           title={"Login to your account"}
           subtitle="Enter your credentials below to login to your account"
           submitHandler={handleSubmit}

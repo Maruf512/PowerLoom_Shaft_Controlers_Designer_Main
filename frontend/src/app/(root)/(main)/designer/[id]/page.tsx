@@ -5,7 +5,7 @@ import useFetchState from "@/hooks/useFetchState";
 import apiClient from "@/lib/apiClient";
 import { Design } from "@/types/data";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Page = () => {
   const { id } = useParams();
@@ -18,6 +18,7 @@ const Page = () => {
     loading,
     setLoading,
   } = useFetchState<Design>();
+  const [apiBase, setApiBase] = useState("designer/designs");
 
   useEffect(() => {
     if (!id) {
@@ -27,15 +28,21 @@ const Page = () => {
 
     const fetchDesigner = async () => {
       setLoading(true);
-      const { data, error } = await apiClient<Design>(`designer/designs/${id}`);
-      setLoading(false);
-
-      if (error) {
-        setDesignerError("Error fetching designer data");
+      const own = await apiClient<Design>(`designer/designs/${id}`);
+      if (own.data) {
+        setDesigner(own.data);
+        setLoading(false);
         return;
       }
-
-      if (data) setDesigner(data);
+      // Admin fallback: view any user's file
+      const adm = await apiClient<Design>(`auth/admin/designs/${id}`);
+      setLoading(false);
+      if (adm.data) {
+        setApiBase("auth/admin/designs");
+        setDesigner(adm.data);
+        return;
+      }
+      setDesignerError("Error fetching designer data");
     };
 
     fetchDesigner();
@@ -53,7 +60,11 @@ const Page = () => {
           {designerError}
         </p>
       ) : designer ? (
-        <DesignDetails designer={designer} />
+        <DesignDetails
+          designer={designer}
+          apiBase={apiBase}
+          deleteRedirect={apiBase === "designer/designs" ? "/" : "/admin"}
+        />
       ) : (
         <p className="font-semibold text-base text-center capitalize tracking-wide">
           No design data found.

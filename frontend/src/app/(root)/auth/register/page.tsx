@@ -7,6 +7,24 @@ import { AuthFieldsNameType } from "@/types/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+const REGISTER_FIELDS = [
+  {
+    fieldName: "name",
+    fieldType: "text",
+    placeholder: "Enter your name",
+  },
+  {
+    fieldName: "email",
+    fieldType: "email",
+    placeholder: "Enter your email",
+  },
+  {
+    fieldName: "password",
+    fieldType: "password",
+    placeholder: "Enter your password",
+  },
+] as const;
+
 const Page = () => {
   const { error, loading, setLoading, setError } = useFetchState();
   const router = useRouter();
@@ -31,26 +49,12 @@ const Page = () => {
 
   return (
     <>
-      <p className="absolute top-2 left-2">{error && JSON.stringify(error)}</p>
+      {error ? (
+        <p className="absolute top-2 left-2">{JSON.stringify(error)}</p>
+      ) : null}
       <div className="flex items-center justify-center w-full h-screen">
         <AuthForm
-          fields={[
-            {
-              fieldName: "name",
-              fieldType: "text",
-              placeholder: "Enter your name",
-            },
-            {
-              fieldName: "email",
-              fieldType: "email",
-              placeholder: "Enter your email",
-            },
-            {
-              fieldName: "password",
-              fieldType: "password",
-              placeholder: "Enter your password",
-            },
-          ]}
+          fields={[...REGISTER_FIELDS]}
           title={"Register your account"}
           subtitle="Enter your credentials below to register your account"
           submitHandler={handleSubmit}

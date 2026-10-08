@@ -13,7 +13,20 @@ import Semulator from "../ui/Semulator";
 import { useToast } from "../ui/ToastProvider";
 import ExportTxt from "../ui/ExportTxt";
 
-const DesignDetails = ({ designer }: { designer: Design }) => {
+const DesignDetails = ({
+  designer,
+  // Base API path without trailing slash. Owners use "designer/designs",
+  // admins pass "auth/admin/designs" to act on any user's file.
+  apiBase = "designer/designs",
+  // Where to go after delete (admin detail view stays on /admin).
+  deleteRedirect = "/",
+  onDeleted,
+}: {
+  designer: Design;
+  apiBase?: string;
+  deleteRedirect?: string;
+  onDeleted?: (id: number) => void;
+}) => {
   const router = useRouter();
   const [designDataError, setDesignDataError] = useState<DesignErrorType>(
     designerErrorEnitialState
@@ -37,7 +50,7 @@ const DesignDetails = ({ designer }: { designer: Design }) => {
   }, [designer]);
 
   const deleteHandler = async () => {
-    const { error } = await apiClient(`designer/designs/${designer.id}`, {
+    const { error } = await apiClient(`${apiBase}/${designer.id}`, {
       method: "DELETE",
     });
 
@@ -47,7 +60,8 @@ const DesignDetails = ({ designer }: { designer: Design }) => {
     }
 
     toast("Designer data deleted successfully", "success");
-    router.push("/");
+    onDeleted?.(designer.id);
+    router.push(deleteRedirect);
   };
 
   return (
@@ -120,7 +134,11 @@ const DesignDetails = ({ designer }: { designer: Design }) => {
             setHasError={setHasError}
           />
           <Link
-            href={`/designer/edit/${designer.id}`}
+            href={
+              apiBase === "designer/designs"
+                ? `/designer/edit/${designer.id}`
+                : `/admin/designs/${designer.id}/edit`
+            }
             className="w-full h-full"
           >
             <Button className="w-full h-full">Update</Button>

@@ -3,7 +3,7 @@
 import { AuthFieldsNameType, AuthFormTypes } from "@/types/auth";
 import { cn } from "@/utils/cn";
 import { authFormValidator } from "@/utils/validators";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
 import Button from "../ui/Button";
 
@@ -15,12 +15,17 @@ const AuthForm = ({
   footerContent,
   isLoading,
 }: AuthFormTypes) => {
+  // Stabilize fields identity (pages pass inline array literals) so the
+  // memo doesn't recompute every render and cause hydration churn.
+  const fieldKey = fields.map((f) => `${f.fieldName}:${f.fieldType}`).join("|");
+
   const initialFormData = useMemo(() => {
     return fields.reduce((acc, field) => {
       acc[field.fieldName] = "";
       return acc;
     }, {} as Record<AuthFieldsNameType, string>);
-  }, [fields]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldKey]);
 
   const [formData, setFormData] = useState(initialFormData);
   const [showPassword, setShowPassword] = useState(false);
@@ -28,20 +33,22 @@ const AuthForm = ({
     {} as Record<AuthFieldsNameType, string>
   );
 
-  const formHandler = useCallback(
-    (e: React.FormEvent<HTMLFormElement> | KeyboardEvent) => {
-      e.preventDefault();
-      const errors = authFormValidator(formData);
+  // Keep latest submitHandler without re-creating formHandler every render
+  // (pages define handleSubmit inline).
+  const submitRef = useRef(submitHandler);
+  submitRef.current = submitHandler;
 
-      if (Object.keys(errors).length > 0) {
-        setErrors(errors);
-        return;
-      }
+  const formHandler = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const validationErrors = authFormValidator(formData);
 
-      submitHandler(formData);
-    },
-    [formData, submitHandler]
-  );
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    submitRef.current(formData);
+  };
 
   const handelChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -51,17 +58,8 @@ const AuthForm = ({
     setErrors({ ...errors, [field]: "" });
   };
 
-  useEffect(() => {
-    const handelKeypress = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
-        formHandler(e);
-      }
-    };
-
-    document.addEventListener("keydown", handelKeypress);
-
-    return () => document.removeEventListener("keydown", handelKeypress);
-  }, [formHandler]);
+  // NOTE: native <form onSubmit> already handles Enter key.
+  // A manual document keydown listener caused double submits, so it was removed.
 
   return (
     <form
@@ -78,7 +76,7 @@ const AuthForm = ({
         {fields.map((field) => (
           <div key={field.fieldName} className="flex flex-col w-full">
             <label
-              htmlFor={field.fieldType}
+              htmlFor={field.fieldName}
               className="capitalize text-sm md:text-basec font-medium"
             >
               {field.fieldName}
@@ -96,12 +94,13 @@ const AuthForm = ({
                 }
                 id={field.fieldName}
                 name={field.fieldName}
-                value={formData[field.fieldName]}
+                value={formData[field.fieldName] ?? ""}
                 placeholder={field.placeholder}
                 onChange={(e) => handelChange(e, field.fieldName)}
               />
               {field.fieldType === "password" && (
                 <button
+                  type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer px-1 py-1 hover:bg-on-surface duration-200 rounded-sm"
                   onClick={(e) => {
                     e.preventDefault();

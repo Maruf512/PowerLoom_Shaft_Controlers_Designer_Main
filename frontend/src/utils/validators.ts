@@ -18,7 +18,12 @@ export const authFormValidator = (
     newErrors.password = "Password must be at least 6 characters";
   }
 
-  if (formData.name === "") {
+  // Only validate `name` on forms that actually have it (register).
+  // Login formData has no `name` key (undefined) and must not fail here.
+  if (
+    "name" in formData &&
+    (formData.name ?? "").trim() === ""
+  ) {
     newErrors.name = "name is required";
   }
 

@@ -3,43 +3,35 @@
 import DesignerEditor from "@/components/layout/DesignerEditor";
 import { useToast } from "@/components/ui/ToastProvider";
 import useFetchState from "@/hooks/useFetchState";
+import useUser from "@/hooks/useUser";
 import apiClient from "@/lib/apiClient";
 import { Design, DesignType } from "@/types/data";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-const Page = () => {
+const AdminDesignEditPage = () => {
   const { data, setData, error, setError } = useFetchState<DesignType>();
   const toast = useToast();
   const { id } = useParams();
-
+  const { user } = useUser();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
-  // Owner endpoint first; admins fall back to the admin endpoint so they
-  // can edit any user's file from a shared link.
-  const [apiBase, setApiBase] = useState("designer/designs");
 
   useEffect(() => {
     if (!id) {
       setError("Invalid designer id");
       return;
     }
-
     const fetchDesigner = async () => {
-      const own = await apiClient<Design>(`designer/designs/${id}`);
-      let data = own.data;
-      if (!data) {
-        const adm = await apiClient<Design>(`auth/admin/designs/${id}`);
-        if (adm.data) {
-          data = adm.data;
-          setApiBase("auth/admin/designs");
-        } else {
-          setError("Error fetching designer data for update");
-          setLoading(false);
-          return;
-        }
+      const { data, error } = await apiClient<Design>(
+        `auth/admin/designs/${id}`
+      );
+      if (error || !data) {
+        setError("Error fetching designer data for update");
+        setLoading(false);
+        return;
       }
-
-      const designerData: DesignType = {
+      setData({
         name: data.name,
         total_color_palettes: data.total_color_palettes,
         color_box_1: data.color_box_1,
@@ -49,27 +41,27 @@ const Page = () => {
         starting_position: data.starting_position,
         machine_type: data.machine_type,
         design_grids: data.design_grids,
-      };
-
-      setData(designerData);
+      });
       setLoading(false);
     };
-
     fetchDesigner();
   }, [id, setData, setError]);
 
   const updateHandler = async (designerData: DesignType) => {
-    const { error } = await apiClient<Design>(`${apiBase}/${id}`, {
+    const { error } = await apiClient<Design>(`auth/admin/designs/${id}`, {
       method: "PUT",
       body: designerData,
     });
-
     if (error) {
-      toast("Error updating designer data", "error");
+      toast(typeof error === "string" ? error : "Error updating design", "error");
       return;
     }
-    toast("Designer data updated successfully", "success");
+    toast("Design updated successfully", "success");
+    router.push("/admin");
   };
+
+  if (user && !user.is_admin)
+    return <p className="text-center text-sm">Access denied — admins only.</p>;
 
   return (
     <div>
@@ -95,4 +87,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default AdminDesignEditPage;

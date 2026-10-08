@@ -12,17 +12,23 @@ const apiClient = async <T>(
   options: ApiClientOptionsType = {}
 ): Promise<ApiResponseType<T>> => {
   const { method = "GET", body, headers, ...restOpts } = options;
-  const defaultHeaders = {
-    "Content-Type": "application/json",
-    // "X-CSRFToken": getCookie1("csrftoken") || "",
+  const isFormData =
+    typeof FormData !== "undefined" && body instanceof FormData;
+  const defaultHeaders: Record<string, string> = {
     Accept: "application/json",
+    // Don't set Content-Type for FormData — browser sets multipart boundary.
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...headers,
   };
 
   const config: RequestInit = {
     method,
     headers: defaultHeaders,
-    ...(body && method !== "GET" ? { body: JSON.stringify(body) } : {}),
+    ...(body && method !== "GET"
+      ? isFormData
+        ? { body: body as FormData }
+        : { body: JSON.stringify(body) }
+      : {}),
     credentials: "include",
     ...restOpts,
   };

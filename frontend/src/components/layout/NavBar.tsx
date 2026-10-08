@@ -1,6 +1,7 @@
 "use client";
 
 import { navlinks } from "@/constants/Nav";
+import useUser from "@/hooks/useUser";
 import { cn } from "@/utils/cn";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,6 +15,13 @@ const NavBar = () => {
   const path = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useUser();
+  const avatarSrc = user?.avatar_url || "/profile.png";
+  const visibleLinks = navlinks.filter((link) => {
+    if ((link as { adminOnly?: boolean }).adminOnly && !user?.is_admin)
+      return false;
+    return true;
+  });
 
   return (
     <div className="bg-surface rounded-radius-lg border border-muted lg:text-sm text-xs flex justify-between items-center h-[3rem]">
@@ -25,7 +33,7 @@ const NavBar = () => {
           <IoCaretBackSharp />
         </div>
         <div className="w-fit space-x-4 lg:px-6 px-3">
-          {navlinks.map((link) => (
+          {visibleLinks.map((link) => (
             <Link
               key={link.path}
               href={link.path}
@@ -45,10 +53,11 @@ const NavBar = () => {
           onClick={() => setIsOpen((prev) => !prev)}
         >
           <Image
-            src={"/profile.png"}
+            src={avatarSrc}
             objectFit="cover"
             layout="fill"
             alt="profile"
+            unoptimized={avatarSrc.startsWith("http")}
           />
         </div>
         <Overlay

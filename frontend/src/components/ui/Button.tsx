@@ -42,9 +42,9 @@ const Button = ({
 }: ButtonProps) => {
   return (
     <button
-      className={cn(buttonVariants({ variant, size }), className)}
-      disabled={isLoading}
       {...props}
+      className={cn(buttonVariants({ variant, size }), className)}
+      disabled={isLoading || props.disabled}
     >
       {isLoading ? "Loading..." : children}
     </button>
