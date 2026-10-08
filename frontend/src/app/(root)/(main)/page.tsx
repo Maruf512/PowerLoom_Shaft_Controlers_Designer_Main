@@ -70,7 +70,7 @@ const Page = () => {
         />
       </div>
       {search.trim() && !loading ? (
-        <p className="text-xs text-muted px-1">
+        <p className="text-xs text-basec px-1">
           Showing {filteredData.length} of {(data || []).length} designs
         </p>
       ) : null}

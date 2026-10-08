@@ -109,13 +109,13 @@ const SettingsPage = () => {
     toast("Password updated successfully", "success");
   };
 
-  if (loading) return <p className="text-sm text-muted">Loading settings…</p>;
+  if (loading) return <p className="text-sm text-basec">Loading settings…</p>;
 
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="bg-surface border border-muted rounded-radius-lg p-6">
         <h1 className="text-lg font-semibold">Profile settings</h1>
-        <p className="text-sm text-muted mt-1">
+        <p className="text-sm text-basec mt-1">
           Update your photo, name and phone number.
         </p>
 
@@ -138,7 +138,7 @@ const SettingsPage = () => {
                 className="block mt-1 text-xs"
                 onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
               />
-              <p className="text-xs text-muted mt-1">JPG / PNG, square works best.</p>
+              <p className="text-xs text-basec mt-1">JPG / PNG, square works best.</p>
             </div>
           </div>
 

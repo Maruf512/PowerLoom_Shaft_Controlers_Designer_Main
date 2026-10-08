@@ -137,12 +137,12 @@ const AdminPage = () => {
   }, [users]);
 
   if (loading)
-    return <p className="text-sm text-muted">Loading admin dashboard…</p>;
+    return <p className="text-sm text-basec">Loading admin dashboard…</p>;
   if (forbidden || (user && !user.is_admin))
     return (
       <div className="bg-surface border border-muted rounded-radius-lg p-8 text-center">
         <h1 className="font-semibold">Access denied</h1>
-        <p className="text-sm text-muted mt-2">
+        <p className="text-sm text-basec mt-2">
           This page is for admins only. Ask an admin to promote your account
           (<code>is_admin=True</code>).
         </p>
@@ -164,7 +164,7 @@ const AdminPage = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold">Admin dashboard</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-basec">
           Users, design files, colors and roles — full access.
         </p>
       </div>
@@ -175,7 +175,7 @@ const AdminPage = () => {
             key={c.label}
             className="bg-surface border border-muted rounded-radius-lg p-4"
           >
-            <p className="text-xs text-muted uppercase">{c.label}</p>
+            <p className="text-xs text-basec uppercase">{c.label}</p>
             <p className="text-2xl font-bold mt-1">{c.value}</p>
           </div>
         ))}
@@ -210,7 +210,7 @@ const AdminPage = () => {
               <h2 className="font-semibold text-sm mb-3">Top designers</h2>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-muted text-xs">
+                  <tr className="text-left text-basec text-xs">
                     <th className="py-2 pr-4">User</th>
                     <th className="py-2 pr-4">Email</th>
                     <th className="py-2">Designs</th>
@@ -233,7 +233,7 @@ const AdminPage = () => {
             <h2 className="font-semibold text-sm mb-3">All users ({users.length})</h2>
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="text-left text-muted text-xs">
+                <tr className="text-left text-basec text-xs">
                   <th className="py-2 pr-3">User</th>
                   <th className="py-2 pr-3">Phone</th>
                   <th className="py-2 pr-3">Designs</th>
@@ -258,7 +258,7 @@ const AdminPage = () => {
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium truncate">{u.name}</p>
-                          <p className="text-xs text-muted truncate">{u.email}</p>
+                          <p className="text-xs text-basec truncate">{u.email}</p>
                         </div>
                       </div>
                     </td>
@@ -342,11 +342,11 @@ const AdminPage = () => {
               All design files ({designs.length})
             </h2>
             {designs.length === 0 ? (
-              <p className="text-sm text-muted py-4 text-center">No designs found.</p>
+              <p className="text-sm text-basec py-4 text-center">No designs found.</p>
             ) : (
               <table className="w-full text-sm min-w-[760px]">
                 <thead>
-                  <tr className="text-left text-muted text-xs">
+                  <tr className="text-left text-basec text-xs">
                     <th className="py-2 pr-3">Design</th>
                     <th className="py-2 pr-3">Owner</th>
                     <th className="py-2 pr-3">Machine</th>
@@ -361,7 +361,7 @@ const AdminPage = () => {
                         <td className="py-2 pr-3 font-medium">{d.name}</td>
                         <td className="py-2 pr-3 text-xs">
                           {d.user?.name || ownerName[d.user?.id] || `ID ${d.user?.id}`}
-                          <span className="text-muted"> · {d.user?.email}</span>
+                          <span className="text-basec"> · {d.user?.email}</span>
                         </td>
                         <td className="py-2 pr-3 text-xs">{d.machine_type || "—"}</td>
                         <td className="py-2 pr-3 text-xs">
@@ -420,11 +420,11 @@ const AdminPage = () => {
             All color palettes ({colors.length})
           </h2>
           {colors.length === 0 ? (
-            <p className="text-sm text-muted py-4 text-center">No colors found.</p>
+            <p className="text-sm text-basec py-4 text-center">No colors found.</p>
           ) : (
             <table className="w-full text-sm min-w-[560px]">
               <thead>
-                <tr className="text-left text-muted text-xs">
+                <tr className="text-left text-basec text-xs">
                   <th className="py-2 pr-3">Swatch</th>
                   <th className="py-2 pr-3">Value</th>
                   <th className="py-2 pr-3">Owner</th>
@@ -442,7 +442,7 @@ const AdminPage = () => {
                     </td>
                     <td className="py-2 pr-3 font-mono text-xs">{c.color}</td>
                     <td className="py-2 pr-3 text-xs">
-                      {c.user?.name} <span className="text-muted">· {c.user?.email}</span>
+                      {c.user?.name} <span className="text-basec">· {c.user?.email}</span>
                     </td>
                     <td className="py-2 text-xs">{c.created_at?.split("T")[0]}</td>
                   </tr>
