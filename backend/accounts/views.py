@@ -19,6 +19,9 @@ from .permissions import IsAdmin
 # =====================
 # ===================== Login View
 # =====================
+# =====================
+# ===================== Login View
+# =====================
 class LoginView(APIView):
     authentication_classes = []
     def post(self, request):
@@ -37,25 +40,29 @@ class LoginView(APIView):
         refresh.set_exp()
         
         res = Response()
+        
+        # Cross-subdomain cookie settings
+        cookie_kwargs = {
+            "domain": ".nextfashiontextile.com",
+            "httponly": True,
+            "secure": True,      # Required for SameSite='None' over HTTPS
+            "samesite": "None",  # Required for cross-subdomain requests
+        }
+
         res.set_cookie(
             key="access_token",
             value=str(refresh.access_token),
-            httponly=True,
-            secure=False,
-            samesite="Lax"
+            **cookie_kwargs
         )
 
         res.set_cookie(
             key="refresh_token",
             value=str(refresh),
-            httponly=True,
-            secure=False,
-            samesite="Lax"
+            **cookie_kwargs
         )
 
         res.data = {"message": "Login successful"}
         return res
-
 
 
 # =====================
@@ -312,15 +319,15 @@ class CookieTokenObtainView(APIView):
             response.set_cookie(
                 key="access_token",
                 value=str(access),
+                domain=".nextfashiontextile.com",
                 httponly=True,
-                secure=False,
-                samesite="Lax"
+                secure=True,
+                samesite="None"
             )
             return response
 
         except (TokenError, InvalidToken):
             return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 
 # =====================
@@ -330,7 +337,7 @@ class LogoutView(APIView):
     def post(self, request):
         response = Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
 
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        response.delete_cookie("access_token", domain=".nextfashiontextile.com")
+        response.delete_cookie("refresh_token", domain=".nextfashiontextile.com")
 
         return response

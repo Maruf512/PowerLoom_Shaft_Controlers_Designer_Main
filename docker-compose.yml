@@ -5,14 +5,14 @@ services:
       dockerfile: Dockerfile
     container_name: django_backend
     restart: always
-    ports:
-      - "8000:8000"
     volumes:
       - ./backend:/app
       - /app/env
     environment:
       - PYTHONUNBUFFERED=1
     command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - app_net
 
   frontend:
     build:
@@ -20,8 +20,6 @@ services:
       dockerfile: Dockerfile
     container_name: nextjs_frontend
     restart: always
-    ports:
-      - "0.0.0.0:3000:3000"
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
@@ -29,11 +27,28 @@ services:
     env_file:
       - ./frontend/.env.local
     environment:
-      - NODE_ENV=production # Fixed: Production environment
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://api.nextfashiontextile.com
     depends_on:
       - backend
     command: sh -c "npx next build && npx next start -H 0.0.0.0"
+    networks:
+      - app_net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=TunnelTokenHere
+    networks:
+      - app_net
 
 volumes:
   frontend_node_modules:
   next_cache:
+
+networks:
+  app_net:
+    driver: bridge

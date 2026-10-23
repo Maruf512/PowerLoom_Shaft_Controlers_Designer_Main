@@ -1,6 +1,16 @@
+import os
+import uuid
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+
+
+def user_avatar_path(instance, filename):
+    """Sanitizes filename and extension to lowercase to prevent 404 routing errors."""
+    ext = filename.split('.')[-1].lower()
+    # Generates a clean random unique filename with a lowercase extension
+    new_filename = f"{uuid.uuid4().hex[:12]}.{ext}"
+    return os.path.join('avatars', new_filename)
 
 
 def _delete_storage_file(field_file):
@@ -20,16 +30,16 @@ class Account(models.Model):
     name = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
     phone = models.CharField(max_length=32, blank=True, default="")
-    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
+    
+    # Updated upload_to to use our sanitization function
+    avatar = models.ImageField(upload_to=user_avatar_path, null=True, blank=True)
+    
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
     def save(self, *args, **kwargs):
-        # If the avatar is being replaced/cleared, delete the old file
-        # so media/avatars/ doesn't fill up with orphans.
         old_avatar = None
         if self.pk:
             try:
@@ -58,6 +68,4 @@ class Account(models.Model):
 
 @receiver(post_delete, sender=Account)
 def delete_avatar_on_account_delete(sender, instance, **kwargs):
-    # Covers bulk queryset deletes (e.g. Django admin "delete selected"),
-    # which bypass Model.delete(). No-op if already removed.
     _delete_storage_file(instance.avatar)
